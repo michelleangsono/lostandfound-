@@ -1,0 +1,17 @@
+{
+  "name": "Lost & Found",
+  "short_name": "LostFound",
+  "description": "Report and find lost items on campus",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#18181b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

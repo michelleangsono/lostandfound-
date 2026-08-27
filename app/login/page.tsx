@@ -1,28 +1,27 @@
 "use client";
-import { createUser } from "@/db/users";
+import { verifyUser } from "@/db/users";
 import { User } from "@/lib/types";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export default function Home() {
+const LoginPage = () => {
   const newUser: User = { id: 0, email: "", fullname: "", password: "" };
   const [user, setUser] = useState<User>(newUser);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!user.email || !user.fullname || !user.password) {
+    if (!user.email || !user.password) {
       toast.error("Please fill in all fields");
       return;
     }
     setLoading(true);
-    const result = await createUser(user);
-    setUser(newUser);
-    if (result) {
-      redirect("/login");
+    const isValid = await verifyUser(user);
+    if (isValid) {
+      redirect("/dashboard");
     } else {
-      toast.error("Failed to create account");
+      toast.error("Email or password is wrong");
     }
     setLoading(false);
   };
@@ -47,24 +46,14 @@ export default function Home() {
             </svg>
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Create an account
+            Sign in
           </h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Enter your details below to sign up
+            Enter your details below to sign in
           </p>
         </div>
 
         <div className="space-y-3 sm:space-y-4">
-          <input
-            className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 text-base text-zinc-900 placeholder-zinc-400 transition-colors focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-100 dark:focus:ring-zinc-100 sm:h-11 sm:text-sm"
-            type="text"
-            name="fullname"
-            value={user.fullname!}
-            placeholder="Full name"
-            onChange={(e) => setUser({ ...user, fullname: e.target.value })}
-            required
-          />
-
           <input
             className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 text-base text-zinc-900 placeholder-zinc-400 transition-colors focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-100 dark:focus:ring-zinc-100 sm:h-11 sm:text-sm"
             type="email"
@@ -90,20 +79,22 @@ export default function Home() {
             disabled={loading}
             className="h-12 w-full rounded-xl bg-zinc-900 text-base font-medium text-white transition-colors hover:bg-zinc-800 active:bg-zinc-950 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 sm:h-11 sm:text-sm"
           >
-            {loading ? "Creating account..." : "Sign Up"}
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </div>
 
         <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
-          Already have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link
-            href="/login"
+            href="/"
             className="font-medium text-zinc-900 hover:underline dark:text-zinc-50"
           >
-            Sign in
+            Sign up
           </Link>
         </p>
       </div>
     </main>
   );
-}
+};
+
+export default LoginPage;
