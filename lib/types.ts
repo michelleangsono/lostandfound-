@@ -11,4 +11,7 @@ export interface Item {
   isclaim: boolean | null
   zone: string | null
   userid: number | null
+  category: string | null
+  image: string | null
+  claimant_name: string | null
 }

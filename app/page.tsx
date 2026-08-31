@@ -1,5 +1,8 @@
 "use client";
-import { createUser } from "@/db/users";
+import { Button } from "@/components/Button";
+import { Header } from "@/components/Header";
+import { Input } from "@/components/Input";
+import { verifyUser } from "@/db/users";
 import { User } from "@/lib/types";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -11,98 +14,89 @@ export default function Home() {
   const [user, setUser] = useState<User>(newUser);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!user.email || !user.fullname || !user.password) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user.email || !user.password) {
       toast.error("Please fill in all fields");
       return;
     }
+    if (!user.email.endsWith("@bsj.sch.id")) {
+      toast.error("Only @bsj.sch.id emails are allowed");
+      return;
+    }
     setLoading(true);
-    const result = await createUser(user);
-    setUser(newUser);
-    if (result) {
-      redirect("/login");
+    const isValid = await verifyUser(user);
+    if (isValid) {
+      redirect("/dashboard");
     } else {
-      toast.error("Failed to create account");
+      toast.error("Email or password is wrong");
     }
     setLoading(false);
   };
 
+  const handleChange =
+    (field: keyof User) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setUser({ ...user, [field]: e.target.value });
+    };
+
   return (
-    <main className="flex min-h-dvh flex-col bg-zinc-50 px-5 py-10 dark:bg-zinc-950 sm:items-center sm:justify-center sm:p-6">
-      <div className="w-full max-w-sm mx-auto space-y-8 sm:space-y-6">
-        <div className="space-y-2 text-center sm:space-y-1.5">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-900 dark:bg-zinc-50 sm:mb-2">
-            <svg
-              className="h-7 w-7 text-white dark:text-zinc-900"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-              />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Create an account
-          </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Enter your details below to sign up
-          </p>
-        </div>
+    <main className="min-h-screen bg-black flex items-center justify-center p-4 font-sans">
+      <div className="w-full max-w-sm bg-[#1e1e1e] rounded-xl overflow-hidden shadow-2xl flex flex-col">
+        <Header />
 
-        <div className="space-y-3 sm:space-y-4">
-          <input
-            className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 text-base text-zinc-900 placeholder-zinc-400 transition-colors focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-100 dark:focus:ring-zinc-100 sm:h-11 sm:text-sm"
-            type="text"
-            name="fullname"
-            value={user.fullname!}
-            placeholder="Full name"
-            onChange={(e) => setUser({ ...user, fullname: e.target.value })}
-            required
-          />
-
-          <input
-            className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 text-base text-zinc-900 placeholder-zinc-400 transition-colors focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-100 dark:focus:ring-zinc-100 sm:h-11 sm:text-sm"
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
+          <Input
+            id="email"
             type="email"
-            name="email"
+            label="School email"
+            placeholder="name@bsj.sch.id"
             value={user.email}
-            placeholder="Email address"
-            onChange={(e) => setUser({ ...user, email: e.target.value })}
-            required
+            onChange={handleChange("email")}
           />
 
-          <input
-            className="h-12 w-full rounded-xl border border-zinc-200 bg-white px-4 text-base text-zinc-900 placeholder-zinc-400 transition-colors focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-100 dark:focus:ring-zinc-100 sm:h-11 sm:text-sm"
-            type="password"
-            name="password"
-            value={user.password!}
-            placeholder="Password"
-            onChange={(e) => setUser({ ...user, password: e.target.value })}
-            required
-          />
+          <div className="flex flex-col gap-1">
+            <Input
+              id="password"
+              type="password"
+              label="Password"
+              placeholder="••••••••"
+              value={user.password ?? ""}
+              onChange={handleChange("password")}
+              rightElement={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              }
+            />
+          </div>
 
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="h-12 w-full rounded-xl bg-zinc-900 text-base font-medium text-white transition-colors hover:bg-zinc-800 active:bg-zinc-950 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 sm:h-11 sm:text-sm"
-          >
-            {loading ? "Creating account..." : "Sign Up"}
-          </button>
-        </div>
+          <div className="mt-2">
+            <Button variant="primary" type="submit" disabled={loading}>
+              {loading ? "Signing in..." : "Sign in"}
+            </Button>
+          </div>
 
-        <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
-          Already have an account?{" "}
-          <Link
-            href="/login"
-            className="font-medium text-zinc-900 hover:underline dark:text-zinc-50"
-          >
-            Sign in
-          </Link>
-        </p>
+          <p className="text-center text-[#777] text-xs mt-4 mb-2">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/signup"
+              className="text-[#3b82f6] hover:text-blue-400 transition-colors"
+            >
+              Sign up
+            </Link>
+          </p>
+        </form>
       </div>
     </main>
   );
